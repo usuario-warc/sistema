@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Horarios de Marcación{% endblock %}
+
+{% block content %}
+<h1 class="mb-1">Configuración de Marcaciones y Horarios</h1>
+<p class="text-muted mb-4">
+    Define la ventana de tiempo válida para cada tipo de marcación. Fuera de estas horas, el
+    sistema no permitirá registrar asistencia. Deja el campo "Hasta" vacío para indicar
+    "en adelante" (sin límite superior), como el caso de Salida de la tarde.
+</p>
+
+<form method="POST" class="card border-0 shadow-sm p-4">
+    <div class="row g-4">
+        {% for v in ventanas %}
+        <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-clock-fill text-primary me-1"></i>{{ v.etiqueta }}
+                </h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label for="{{ v.campo }}_inicio" class="form-label small">Desde</label>
+                        <input type="time" class="form-control" id="{{ v.campo }}_inicio"
+                               name="{{ v.campo }}_inicio" value="{{ v.hora_inicio.strftime('%H:%M') }}" required>
+                    </div>
+                    <div class="col-6">
+                        <label for="{{ v.campo }}_fin" class="form-label small">Hasta</label>
+                        <input type="time" class="form-control" id="{{ v.campo }}_fin"
+                               name="{{ v.campo }}_fin" value="{{ v.hora_fin.strftime('%H:%M') if v.hora_fin else '' }}"
+                               placeholder="En adelante">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle-fill me-1"></i>Guardar configuración
+        </button>
+        <a href="{{ url_for('asistencia') }}" class="btn btn-secondary">Volver a Asistencia</a>
+    </div>
+</form>
+{% endblock %}

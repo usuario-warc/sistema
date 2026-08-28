@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<h1>Editar Usuario</h1>
+<form method="POST" action="{{ url_for('usuarios_edit', id_usuario=usuario.id_usuario) }}">
+    <div class="mb-3">
+        <label for="nombre_completo" class="form-label">Nombre completo</label>
+        <input type="text" class="form-control" id="nombre_completo" name="nombre_completo"
+               value="{{ usuario.nombre_completo }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="correo" class="form-label">Correo</label>
+        <input type="email" class="form-control" id="correo" name="correo"
+               value="{{ usuario.correo }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="nombre_usuario" class="form-label">Nombre de usuario</label>
+        <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario"
+               value="{{ usuario.nombre_usuario }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Nueva contraseña</label>
+        <input type="password" class="form-control" id="password" name="password"
+               placeholder="Dejar en blanco para no cambiarla">
+    </div>
+    <div class="mb-3">
+        <label for="rol" class="form-label">Rol</label>
+        <select class="form-select" id="rol" name="rol" required>
+            <option value="admin" {% if usuario.rol == 'admin' %}selected{% endif %}>Administrador</option>
+            <option value="docente" {% if usuario.rol == 'docente' %}selected{% endif %}>Docente</option>
+            <option value="supervisor" {% if usuario.rol == 'supervisor' %}selected{% endif %}>Supervisor</option>
+            <option value="empleado" {% if usuario.rol == 'empleado' %}selected{% endif %}>Empleado</option>
+        </select>
+        <div class="form-text">
+            <strong>Administrador:</strong> acceso total. <strong>Docente:</strong> solo puede pasar asistencia
+            en sus secciones asignadas (ver <a href="{{ url_for('asignaciones') }}">Permisos de Docentes</a>).
+        </div>
+    </div>
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="activo" name="activo" {% if usuario.activo %}checked{% endif %}>
+        <label class="form-check-label" for="activo">Usuario activo</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

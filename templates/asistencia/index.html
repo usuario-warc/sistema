@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Registro de Asistencia{% endblock %}
+
+{% block content %}
+<style>
+    .custom-card {
+        border-radius: 12px;
+        transition: box-shadow 0.3s ease;
+    }
+    .action-btn {
+        transition: all 0.2s ease;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .badge-time {
+        font-weight: 500;
+        padding: 0.45em 0.75em;
+        border-radius: 6px;
+        font-size: 0.82rem;
+    }
+    .search-card {
+        border-radius: 12px;
+        background: #ffffff;
+    }
+</style>
+
+<div class="animate__animated animate__fadeIn">
+    <!-- Encabezado y Fecha -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Registro de Asistencia</h1>
+            <p class="text-muted small mb-0">Control de entradas y salidas diarias de los estudiantes</p>
+        </div>
+        <div class="badge bg-white text-dark shadow-sm border px-3 py-2 rounded-pill d-flex align-items-center gap-2">
+            <i class="bi bi-calendar3 text-primary fs-6"></i>
+            <span class="fw-semibold">Fecha: {{ fecha_hoy.strftime('%d/%m/%Y') }}</span>
+        </div>
+    </div>
+
+    <!-- Ventana de marcación activa -->
+    {% if campo_actual %}
+    <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div>
+            Ventana activa ahora mismo: <strong>{{ etiquetas_marcacion[campo_actual] }}</strong>.
+            Al presionar "Marcar" se registrará ese campo con la hora actual del servidor.
+            Si se presiona varias veces, solo se conserva la última marcación.
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div>
+            No hay ninguna ventana de marcación activa en este momento. Revisa los
+            <a href="{{ url_for('configuracion_horarios') if es_admin() else '#' }}" class="alert-link">horarios configurados</a>.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Selector de sección y Buscador -->
+    <div class="card border-0 shadow-sm search-card mb-4">
+        <div class="card-body p-3">
+            <form method="GET" class="row g-2 align-items-center">
+                {% if secciones_disponibles|length > 1 %}
+                <div class="col-md-3">
+                    <select name="id_seccion" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos mis grupos</option>
+                        {% for s in secciones_disponibles %}
+                        <option value="{{ s.id_seccion }}" {% if id_seccion_filtro|string == s.id_seccion|string %}selected{% endif %}>
+                            {{ s.codigo_seccion }} - {{ s.especialidad }} (Grado {{ s.grado }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control bg-light border-start-0 ps-0" placeholder="Buscar por nombre o NIE..." value="{{ query }}">
+                    </div>
+                </div>
+                <div class="col-auto d-flex gap-2">
+                    <button type="submit" class="btn btn-primary action-btn d-flex align-items-center gap-1 px-3">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                    <a href="{{ url_for('asistencia') }}" class="btn btn-outline-secondary action-btn d-flex align-items-center gap-1 px-3">
+                        <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla dentro de Tarjeta -->
+    <div class="card border-0 shadow-sm custom-card overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Alumno</th>
+                            <th>NIE</th>
+                            <th>Sección</th>
+                            <th class="text-center">Entrada mañana</th>
+                            <th class="text-center">Salida mañana</th>
+                            <th class="text-center">Entrada tarde</th>
+                            <th class="text-center">Salida tarde</th>
+                            <th class="text-end pe-4">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set ns = namespace(seccion_anterior=None) %}
+                        {% for a in alumnos %}
+                        {% if a.id_seccion != ns.seccion_anterior %}
+                        <tr class="table-light">
+                            <td colspan="8" class="ps-4 py-2 fw-bold text-primary">
+                                <i class="bi bi-diagram-3-fill me-1"></i>
+                                Sección {{ a.seccion.codigo_seccion if a.seccion else 'Sin sección' }}
+                                {% if a.seccion %} - {{ a.seccion.especialidad }} (Grado {{ a.seccion.grado }}){% endif %}
+                            </td>
+                        </tr>
+                        {% set ns.seccion_anterior = a.id_seccion %}
+                        {% endif %}
+                        {% set reg = registros[a.id_alumno] %}
+                        {% set permisos = permisos_alumno[a.id_alumno] %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-semibold text-dark">{{ a.nombre_completo }}</div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ a.nie }}</span></td>
+                            <td><span class="fw-medium text-secondary">{{ a.seccion.codigo_seccion if a.seccion else '-' }}</span></td>
+                            
+                            <!-- Entrada mañana -->
+                            <td class="text-center">
+                                {% if reg and reg.entrada_manana %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle badge-time">
+                                        <i class="bi bi-clock-fill me-1"></i>{{ reg.entrada_manana.strftime('%H:%M:%S') }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-time">Pendiente</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Salida mañana -->
+                            <td class="text-center">
+                                {% if reg and reg.salida_manana %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle badge-time">
+                                        <i class="bi bi-clock-fill me-1"></i>{{ reg.salida_manana.strftime('%H:%M:%S') }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-time">Pendiente</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Entrada tarde -->
+                            <td class="text-center">
+                                {% if reg and reg.entrada_tarde %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle badge-time">
+                                        <i class="bi bi-clock-fill me-1"></i>{{ reg.entrada_tarde.strftime('%H:%M:%S') }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-time">Pendiente</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Salida tarde -->
+                            <td class="text-center">
+                                {% if reg and reg.salida_tarde %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle badge-time">
+                                        <i class="bi bi-clock-fill me-1"></i>{{ reg.salida_tarde.strftime('%H:%M:%S') }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-time">Pendiente</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Acción -->
+                            <td class="text-end pe-4">
+                                {% if reg and reg.salida_tarde %}
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle badge-time fw-semibold me-2">
+                                        <i class="bi bi-check-all me-1"></i>Completo
+                                    </span>
+                                {% endif %}
+                                {% if campo_actual %}
+                                    <form method="POST" action="{{ url_for('asistencia_marcar', id_alumno=a.id_alumno) }}" class="d-inline">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="id_seccion" value="{{ id_seccion_filtro }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary action-btn">
+                                            <i class="bi bi-clock-fill me-1"></i>Marcar {{ etiquetas_marcacion[campo_actual] }}
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle badge-time">
+                                        Sin ventana activa
+                                    </span>
+                                {% endif %}
+                                {% if permisos.puede_editar %}
+                                    <a href="{{ url_for('alumnos_edit', id_alumno=a.id_alumno) }}" class="btn btn-sm btn-outline-warning action-btn ms-1" title="Editar alumno">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                {% endif %}
+                                {% if permisos.puede_eliminar %}
+                                    <a href="{{ url_for('alumnos_delete', id_alumno=a.id_alumno) }}" class="btn btn-sm btn-outline-danger action-btn ms-1"
+                                       onclick="return confirm('¿Seguro que deseas eliminar este alumno y su historial de asistencia?');" title="Eliminar alumno">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-calendar-x fs-1 d-block mb-2 text-secondary"></i>
+                                No hay alumnos registrados para la toma de asistencia.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

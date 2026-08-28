@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Editar Responsable{% endblock %}
+
+{% block content %}
+<h1>Editar Responsable</h1>
+<form method="POST" class="mt-3">
+    <div class="mb-3">
+        <label for="nombre_completo" class="form-label">Nombre completo</label>
+        <input type="text" id="nombre_completo" name="nombre_completo" class="form-control"
+               value="{{ responsable.nombre_completo }}" maxlength="150" required>
+    </div>
+    <div class="mb-3">
+        <label for="dui" class="form-label">DUI</label>
+        <input type="text" id="dui" name="dui" class="form-control"
+               value="{{ responsable.dui }}" maxlength="10" required>
+    </div>
+    <div class="mb-3">
+        <label for="parentesco" class="form-label">Parentesco</label>
+        <input type="text" id="parentesco" name="parentesco" class="form-control"
+               value="{{ responsable.parentesco }}" maxlength="50" required>
+    </div>
+    <div class="mb-3">
+        <label for="telefono" class="form-label">Teléfono</label>
+        <input type="text" id="telefono" name="telefono" class="form-control"
+               value="{{ responsable.telefono or '' }}" maxlength="15">
+    </div>
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+    <a href="{{ url_for('responsables') }}" class="btn btn-secondary">Volver</a>
+</form>
+{% endblock %}

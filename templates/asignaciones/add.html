@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Nueva Asignación de Docente{% endblock %}
+
+{% block content %}
+<h1 class="mb-1">Nueva Asignación de Docente</h1>
+<p class="text-muted mb-4">
+    Elige el docente, la sección y la asignatura. Por defecto solo podrá pasar asistencia;
+    marca los permisos adicionales que quieras otorgarle únicamente para esta combinación.
+</p>
+
+{% if not docentes %}
+<div class="alert alert-warning">
+    No hay ningún usuario con rol <strong>Docente</strong> todavía. Crea uno primero desde
+    <a href="{{ url_for('usuarios_add') }}">Usuarios</a>.
+</div>
+{% endif %}
+
+<form method="POST" class="card border-0 shadow-sm p-4" style="max-width: 600px;">
+    <div class="mb-3">
+        <label for="id_usuario" class="form-label">Docente</label>
+        <select class="form-select" id="id_usuario" name="id_usuario" required>
+            <option value="" disabled selected>Selecciona un docente</option>
+            {% for d in docentes %}
+            <option value="{{ d.id_usuario }}">{{ d.nombre_completo }} ({{ d.nombre_usuario }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="id_seccion" class="form-label">Sección</label>
+        <select class="form-select" id="id_seccion" name="id_seccion" required>
+            <option value="" disabled selected>Selecciona una sección</option>
+            {% for s in secciones %}
+            <option value="{{ s.id_seccion }}">{{ s.codigo_seccion }} - {{ s.especialidad }} (Grado {{ s.grado }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="id_asignatura" class="form-label">Asignatura</label>
+        <select class="form-select" id="id_asignatura" name="id_asignatura" required>
+            <option value="" disabled selected>Selecciona una asignatura</option>
+            {% for a in asignaturas %}
+            <option value="{{ a.id_asignatura }}">{{ a.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <hr>
+    <p class="fw-semibold mb-2">Permisos adicionales (opcionales)</p>
+    <div class="form-check mb-2">
+        <input type="checkbox" class="form-check-input" id="puede_reportes" name="puede_reportes">
+        <label class="form-check-label" for="puede_reportes">Puede generar reportes de esta sección</label>
+    </div>
+    <div class="form-check mb-2">
+        <input type="checkbox" class="form-check-input" id="puede_editar" name="puede_editar">
+        <label class="form-check-label" for="puede_editar">Puede editar datos de alumnos de esta sección</label>
+    </div>
+    <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="puede_eliminar" name="puede_eliminar">
+        <label class="form-check-label" for="puede_eliminar">Puede eliminar registros de esta sección</label>
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{{ url_for('asignaciones') }}" class="btn btn-secondary">Volver</a>
+    </div>
+</form>
+{% endblock %}
