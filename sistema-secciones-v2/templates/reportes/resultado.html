@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Reporte de Asistencia{% endblock %}
+
+{% block content %}
+<style>
+    /* Al imprimir (o "Guardar como PDF"), ocultamos todo lo que no es el reporte */
+    @media print {
+        .sidebar, .topbar, .overlay, .no-print { display: none !important; }
+        .content-wrapper { margin-left: 0 !important; padding-top: 0 !important; }
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-start mb-3 no-print">
+    <div>
+        <h1 class="mb-1">Reporte de Asistencia</h1>
+        <p class="text-muted mb-0">
+            {% if seccion %}Sección: <strong>{{ seccion.codigo_seccion }} - {{ seccion.especialidad }}</strong>{% else %}Todas las secciones{% endif %}
+            &nbsp;|&nbsp; Del <strong>{{ fecha_inicio.strftime('%d/%m/%Y') }}</strong> al <strong>{{ fecha_fin.strftime('%d/%m/%Y') }}</strong>
+        </p>
+    </div>
+    <div>
+        <a href="{{ url_for('reportes') }}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Nueva búsqueda
+        </a>
+        <button onclick="window.print()" class="btn btn-primary btn-sm">
+            <i class="bi bi-printer"></i> Imprimir / Guardar PDF
+        </button>
+        <a href="{{ url_for('reportes_exportar_csv', id_seccion=id_seccion, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin) }}"
+           class="btn btn-success btn-sm">
+            <i class="bi bi-file-earmark-excel"></i> Exportar CSV
+        </a>
+    </div>
+</div>
+
+<!-- Encabezado que solo se ve al imprimir -->
+<div class="d-none d-print-block mb-3">
+    <h3>Reporte de Asistencia</h3>
+    <p>
+        {% if seccion %}Sección: {{ seccion.codigo_seccion }} - {{ seccion.especialidad }}{% else %}Todas las secciones{% endif %}
+        — Del {{ fecha_inicio.strftime('%d/%m/%Y') }} al {{ fecha_fin.strftime('%d/%m/%Y') }}
+    </p>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Alumno</th>
+            <th>NIE</th>
+            <th>Sección</th>
+            <th>Días asistidos</th>
+            <th>Días del período</th>
+            <th>% Asistencia</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in filas %}
+        <tr>
+            <td>{{ f.alumno.nombre_completo }}</td>
+            <td>{{ f.alumno.nie }}</td>
+            <td>{{ f.alumno.seccion.codigo_seccion if f.alumno.seccion else '-' }}</td>
+            <td>{{ f.dias_asistidos }}</td>
+            <td>{{ f.total_dias }}</td>
+            <td>
+                {% if f.porcentaje >= 85 %}
+                    <span class="badge bg-success">{{ f.porcentaje }}%</span>
+                {% elif f.porcentaje >= 70 %}
+                    <span class="badge bg-warning text-dark">{{ f.porcentaje }}%</span>
+                {% else %}
+                    <span class="badge bg-danger">{{ f.porcentaje }}%</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="text-center">No hay alumnos para este filtro.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

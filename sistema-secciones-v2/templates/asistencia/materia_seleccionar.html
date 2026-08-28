@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Pasar Asistencia por Materia{% endblock %}
+
+{% block content %}
+<style>
+    .paso-card {
+        border-radius: 12px;
+    }
+    .paso-numero {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .seccion-option {
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.15s ease;
+    }
+    .seccion-option:hover {
+        border-color: var(--accent) !important;
+        box-shadow: 0 2px 8px rgba(74,108,247,0.15);
+    }
+</style>
+
+<div class="animate__animated animate__fadeIn" style="max-width: 700px;">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold mb-1">Pasar Asistencia por Materia</h1>
+        <p class="text-muted small mb-0">Elige la materia que estás dando en este momento y luego la sección.</p>
+    </div>
+
+    {% if materias|length == 0 %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-inboxes fs-1 d-block mb-2 text-secondary"></i>
+            No tienes ninguna materia y sección asignada todavía.
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Paso 1: Materia -->
+    <div class="card border-0 shadow-sm paso-card mb-3">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="paso-numero">1</div>
+                <div>
+                    <div class="fw-bold">¿Qué materia estás dando ahora?</div>
+                    <div class="text-muted small">Selecciona la asignatura</div>
+                </div>
+            </div>
+            <select id="selectMateria" class="form-select form-select-lg">
+                <option value="" selected disabled>-- Elige una materia --</option>
+                {% for m in materias %}
+                <option value="{{ m.id }}">{{ m.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Paso 2: Sección (aparece tras elegir materia) -->
+    <div class="card border-0 shadow-sm paso-card mb-3 d-none" id="cardSeccion">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="paso-numero">2</div>
+                <div>
+                    <div class="fw-bold">¿A qué sección le vas a pasar asistencia?</div>
+                    <div class="text-muted small">Solo se muestran las secciones donde impartes esta materia</div>
+                </div>
+            </div>
+            <div id="listaSecciones" class="d-flex flex-column gap-2"></div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+
+<script>
+    const mapaMateriaSecciones = {{ mapa_materia_secciones|tojson }};
+    const selectMateria = document.getElementById('selectMateria');
+    const cardSeccion = document.getElementById('cardSeccion');
+    const listaSecciones = document.getElementById('listaSecciones');
+
+    if (selectMateria) {
+        selectMateria.addEventListener('change', function () {
+            const idMateria = this.value;
+            const secciones = mapaMateriaSecciones[idMateria] || [];
+
+            listaSecciones.innerHTML = '';
+            secciones.forEach(function (s) {
+                const url = '{{ url_for("asistencia_materia_tomar") }}?id_seccion=' + s.id + '&id_asignatura=' + idMateria;
+                const a = document.createElement('a');
+                a.href = url;
+                a.className = 'seccion-option d-flex justify-content-between align-items-center border p-3 text-decoration-none text-dark';
+                a.innerHTML = '<span><i class="bi bi-diagram-3-fill text-primary me-2"></i>' + s.label + '</span>' +
+                              '<i class="bi bi-chevron-right text-muted"></i>';
+                listaSecciones.appendChild(a);
+            });
+
+            cardSeccion.classList.remove('d-none');
+            cardSeccion.classList.add('animate__animated', 'animate__fadeIn');
+        });
+    }
+</script>
+{% endblock %}

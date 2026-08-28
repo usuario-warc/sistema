@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Editar Permisos{% endblock %}
+
+{% block content %}
+<h1 class="mb-1">Editar Permisos</h1>
+<p class="text-muted mb-4">
+    {{ asignacion.usuario.nombre_completo }} &mdash; {{ asignacion.seccion.codigo_seccion }} &mdash; {{ asignacion.asignatura.nombre }}
+</p>
+
+<form method="POST" class="card border-0 shadow-sm p-4" style="max-width: 600px;">
+    <div class="form-check mb-2">
+        <input type="checkbox" class="form-check-input" id="puede_reportes" name="puede_reportes" {% if asignacion.puede_reportes %}checked{% endif %}>
+        <label class="form-check-label" for="puede_reportes">Puede generar reportes de esta sección</label>
+    </div>
+    <div class="form-check mb-2">
+        <input type="checkbox" class="form-check-input" id="puede_editar" name="puede_editar" {% if asignacion.puede_editar %}checked{% endif %}>
+        <label class="form-check-label" for="puede_editar">Puede editar datos de alumnos de esta sección</label>
+    </div>
+    <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="puede_eliminar" name="puede_eliminar" {% if asignacion.puede_eliminar %}checked{% endif %}>
+        <label class="form-check-label" for="puede_eliminar">Puede eliminar registros de esta sección</label>
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{{ url_for('asignaciones') }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

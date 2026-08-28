@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Responsables{% endblock %}
+
+{% block content %}
+<h1>Lista de Responsables</h1>
+<a href="{{ url_for('responsables_add') }}" class="btn btn-primary mb-3">Agregar nuevo</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>DUI</th>
+            <th>Nombre completo</th>
+            <th>Parentesco</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in responsables %}
+        <tr>
+            <td>{{ r.dui }}</td>
+            <td>{{ r.nombre_completo }}</td>
+            <td>{{ r.parentesco }}</td>
+            <td>{{ r.telefono }}</td>
+            <td>
+                <a href="{{ url_for('responsables_edit', id_responsable=r.id_responsable) }}" class="btn btn-warning btn-sm">Editar</a>
+                <a href="{{ url_for('responsables_delete', id_responsable=r.id_responsable) }}" class="btn btn-danger btn-sm"
+                   onclick="return confirm('¿Seguro que deseas eliminar este responsable?');">Eliminar</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" class="text-center">No hay responsables registrados.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

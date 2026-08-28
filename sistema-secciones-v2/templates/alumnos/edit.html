@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Editar Alumno{% endblock %}
+
+{% block content %}
+<h1>Editar Alumno</h1>
+<form method="POST" class="mt-3">
+    <div class="mb-3">
+        <label for="nombre_completo" class="form-label">Nombre completo</label>
+        <input type="text" id="nombre_completo" name="nombre_completo" class="form-control"
+               value="{{ alumno.nombre_completo }}" maxlength="150" required>
+    </div>
+    <div class="mb-3">
+        <label for="genero" class="form-label">Género</label>
+        <select id="genero" name="genero" class="form-select" required>
+            <option value="M" {% if alumno.genero == 'M' %}selected{% endif %}>Masculino</option>
+            <option value="F" {% if alumno.genero == 'F' %}selected{% endif %}>Femenino</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="id_seccion" class="form-label">Sección</label>
+        <select id="id_seccion" name="id_seccion" class="form-select" required>
+            {% for s in secciones %}
+            <option value="{{ s.id_seccion }}" {% if s.id_seccion == alumno.id_seccion %}selected{% endif %}>
+                {{ s.codigo_seccion }} - {{ s.especialidad }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="id_responsable" class="form-label">Responsable (opcional)</label>
+        <select id="id_responsable" name="id_responsable" class="form-select">
+            <option value="">Sin responsable asignado</option>
+            {% for r in responsables %}
+            <option value="{{ r.id_responsable }}" {% if r.id_responsable == alumno.id_responsable %}selected{% endif %}>
+                {{ r.nombre_completo }} ({{ r.parentesco }})
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="activo" name="activo" {% if alumno.activo %}checked{% endif %}>
+        <label class="form-check-label" for="activo">Alumno activo</label>
+    </div>
+    <button type="submit" class="btn btn-success">Guardar cambios</button>
+    <a href="{{ url_for('asistencia') if es_docente() else url_for('alumnos') }}" class="btn btn-secondary">Volver</a>
+</form>
+{% endblock %}
